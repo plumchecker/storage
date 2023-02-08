@@ -57,37 +57,9 @@ func (postgres *dbClient) Create(leak entities.Leak) error {
 	return result.Error
 }
 
-func (postgres *dbClient) GetByEmail(email string) ([]*entities.Leak, error) {
+func (postgres *dbClient) GetByKeyword(key string, value string) ([]*entities.Leak, error) {
 	var leaks []Leak
-	err := postgres.client.Find(&leaks, "email = ?", email).Error
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]*entities.Leak, 0, len(leaks))
-	for _, leak := range leaks {
-		result = append(result, leak.toEntitiesLeak())
-	}
-	return result, nil
-}
-
-func (postgres *dbClient) GetByDomain(domain string) ([]*entities.Leak, error) {
-	var leaks []Leak
-	err := postgres.client.Find(&leaks, "domain = ?", domain).Error
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]*entities.Leak, 0, len(leaks))
-	for _, leak := range leaks {
-		result = append(result, leak.toEntitiesLeak())
-	}
-	return result, nil
-}
-
-func (postgres *dbClient) GetByPassword(password string) ([]*entities.Leak, error) {
-	var leaks []Leak
-	err := postgres.client.Find(&leaks, "password = ?", password).Error
+	err := postgres.client.Find(&leaks, fmt.Sprintf("%s = ?", key), value).Error
 	if err != nil {
 		return nil, err
 	}

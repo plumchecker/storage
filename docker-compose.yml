@@ -3,6 +3,7 @@ services:
   postgres:
     image: postgres
     container_name: postgres_database
+    hostname: postgres
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -10,3 +11,16 @@ services:
       - '5432:5432'
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - storage
+  storage:
+    image: storage
+    container_name: storage
+    ports:
+      - '30001:30001'
+    depends_on:
+      - postgres
+    networks:
+      - storage
+networks:
+  storage: {}

@@ -9,5 +9,5 @@ RUN go build cmd/storage/main.go
 FROM golang:alpine
 WORKDIR /app/cmd/storage
 COPY --from=builder /app/storage/main .
-EXPOSE 10000
+EXPOSE 30001
 CMD ["./main"]
