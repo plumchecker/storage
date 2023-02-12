@@ -6,7 +6,7 @@ import (
 
 type driver interface {
 	Create(leak entities.Leak) error
-	GetByKeyword(key string, value string) ([]*entities.Leak, error)
+	GetByKeyword(key string, value string) ([]entities.Leak, error)
 }
 
 type database struct {
@@ -38,7 +38,7 @@ func (db *database) InsertLeak(leak entities.Leak) (bool, error) {
 	return true, nil
 }
 
-func (db *database) FindLeaksByKeyword(key string, value string) ([]*entities.Leak, error) {
+func (db *database) FindLeaksByKeyword(key string, value string) ([]entities.Leak, error) {
 	leaks, err := db.d.GetByKeyword(key, value)
 	if err != nil {
 		return nil, err

@@ -30,8 +30,8 @@ type Leak struct {
 	Domain   string    `gorm:"type:varchar(255); not null"`
 }
 
-func (l Leak) toEntitiesLeak() *entities.Leak {
-	return &entities.Leak{
+func (l Leak) toEntitiesLeak() entities.Leak {
+	return entities.Leak{
 		Email:    l.Email,
 		Password: l.Password,
 		Domain:   l.Domain,
@@ -57,14 +57,13 @@ func (postgres *dbClient) Create(leak entities.Leak) error {
 	return result.Error
 }
 
-func (postgres *dbClient) GetByKeyword(key string, value string) ([]*entities.Leak, error) {
+func (postgres *dbClient) GetByKeyword(key string, value string) ([]entities.Leak, error) {
 	var leaks []Leak
 	err := postgres.client.Find(&leaks, fmt.Sprintf("%s = ?", key), value).Error
 	if err != nil {
 		return nil, err
 	}
-
-	result := make([]*entities.Leak, 0, len(leaks))
+	result := make([]entities.Leak, 0, len(leaks))
 	for _, leak := range leaks {
 		result = append(result, leak.toEntitiesLeak())
 	}

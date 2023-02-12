@@ -1,12 +1,14 @@
 package storage
 
 import (
+	"fmt"
+
 	"github.com/plumchecker/storage/internal/entities"
 )
 
 type repository interface {
 	InsertLeak(leak entities.Leak) (bool, error)
-	FindLeaksByKeyword(key string, value string) ([]*entities.Leak, error)
+	FindLeaksByKeyword(key string, value string) ([]entities.Leak, error)
 }
 
 type application struct {
@@ -15,7 +17,7 @@ type application struct {
 
 type Controller interface {
 	AddLeaks(leaks []entities.Leak) (int, error)
-	FindLeaksByKeyword(key string, value string) ([]*entities.Leak, error)
+	FindLeaksByKeyword(key string, value string) ([]entities.Leak, error)
 }
 
 func New(repo repository) (*application, error) {
@@ -33,12 +35,13 @@ func (app *application) AddLeaks(leaks []entities.Leak) (int, error) {
 		}
 		if isAdded {
 			counter++
+			fmt.Sprintf("Added %d leaks", counter)
 		}
 	}
 	return counter, nil
 }
 
-func (app *application) FindLeaksByKeyword(key string, value string) ([]*entities.Leak, error) {
+func (app *application) FindLeaksByKeyword(key string, value string) ([]entities.Leak, error) {
 	leaks, err := app.repo.FindLeaksByKeyword(key, value)
 	if err != nil {
 		return nil, err

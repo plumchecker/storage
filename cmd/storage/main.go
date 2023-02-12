@@ -9,7 +9,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/D3vR4pt0rs/logger"
 	"github.com/gorilla/mux"
+
 	"github.com/plumchecker/storage/internal/infrastructure/postgres"
 	"github.com/plumchecker/storage/internal/interfaces/handlers"
 	"github.com/plumchecker/storage/internal/interfaces/repository"
@@ -49,8 +51,10 @@ func main() {
 		}
 	}()
 
-	fmt.Println("[*]  Listening...")
+	logger.Info.Println("[*]  Listening...")
 	if err := srv.ListenAndServe(); err != nil {
-		fmt.Println("Failed to listen and serve ", err)
+		logger.Error.Println("Failed to listen and serve ", err)
 	}
+
+	logger.Critical.Println("Server shutdown")
 }

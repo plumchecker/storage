@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/D3vR4pt0rs/logger"
 	"github.com/gorilla/mux"
 	"github.com/plumchecker/storage/internal/entities"
 	"github.com/plumchecker/storage/internal/usecases/storage"
@@ -17,6 +18,8 @@ func addLeaks(app storage.Controller) http.Handler {
 		errorMessage := "Error add leaks"
 		newLeaks := new(Leaks)
 		err := json.NewDecoder(r.Body).Decode(&newLeaks)
+
+		logger.Info.Printf("Get request for add %d leaks", len(newLeaks.Leaks))
 
 		counter, err := app.AddLeaks(newLeaks.Leaks)
 		if err != nil {
@@ -34,11 +37,15 @@ func getLeaks(app storage.Controller) http.Handler {
 		Key   string
 		Value string
 	}
+	type Response struct {
+		leaks []entities.Leak
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		errorMessage := "Error getting leaks"
+
 		newKeyword := new(Keyword)
 		err := json.NewDecoder(r.Body).Decode(&newKeyword)
-
+		logger.Info.Printf("Get request for getting values by %s with value %s", newKeyword.Key, newKeyword.Value)
 		leaks, err := app.FindLeaksByKeyword(newKeyword.Key, newKeyword.Value)
 		if err != nil {
 			http.Error(w, errorMessage, http.StatusInternalServerError)
@@ -46,7 +53,9 @@ func getLeaks(app storage.Controller) http.Handler {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(leaks)
+		response := make(map[string]interface{})
+		response["leaks"] = leaks
+		json.NewEncoder(w).Encode(response)
 	})
 }
 
