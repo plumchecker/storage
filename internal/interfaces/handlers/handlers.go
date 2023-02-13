@@ -28,7 +28,9 @@ func addLeaks(app storage.Controller) http.Handler {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(counter)
+		response := make(map[string]interface{})
+		response["counter"] = counter
+		json.NewEncoder(w).Encode(response)
 	})
 }
 

@@ -11,6 +11,7 @@ import (
 
 	"github.com/D3vR4pt0rs/logger"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 
 	"github.com/plumchecker/storage/internal/infrastructure/postgres"
 	"github.com/plumchecker/storage/internal/interfaces/handlers"
@@ -36,9 +37,18 @@ func main() {
 
 	router := mux.NewRouter()
 	handlers.Make(router, leakStorage)
+
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"POST", "GET", "OPTIONS", "PUT", "DELETE"},
+		AllowedHeaders:   []string{"Accept", "Accept-Language", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+		Debug:            true,
+	})
+
 	srv := &http.Server{
 		Addr:    ":30001",
-		Handler: router,
+		Handler: c.Handler(router),
 	}
 
 	go func() {
