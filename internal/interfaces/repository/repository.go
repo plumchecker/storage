@@ -57,6 +57,9 @@ func (db *database) FindLeaksByKeyword(key string, value string, token string) (
 	} else {
 		decodedToken, _ := base64.StdEncoding.DecodeString(token)
 		_ = json.Unmarshal(decodedToken, &paginationToken)
+		if paginationToken.Page < 1 {
+			paginationToken.Page = 1
+		}
 	}
 
 	leaks, err := db.d.GetByKeyword(key, value, paginationToken.Page, paginationToken.Size)
