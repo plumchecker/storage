@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"encoding/base64"
+	"encoding/json"
+
 	"github.com/plumchecker/storage/internal/entities"
 )
 
@@ -12,6 +15,11 @@ type driver interface {
 
 type database struct {
 	d driver
+}
+
+type Pagination struct {
+	Page int `json:"page"`
+	Size int `json:"size"`
 }
 
 func New(dbHandler driver) *database {
@@ -40,11 +48,25 @@ func (db *database) InsertLeak(leak entities.Leak) (bool, error) {
 }
 
 func (db *database) FindLeaksByKeyword(key string, value string, token string) ([]entities.Leak, string, error) {
-	page := 1
-	size := 10
-	leaks, err := db.d.GetByKeyword(key, value, page, size)
+	var paginationToken Pagination
+	if token == "" {
+		paginationToken = Pagination{
+			Page: 1,
+			Size: 10,
+		}
+	} else {
+		decodedToken, _ := base64.StdEncoding.DecodeString(token)
+		_ = json.Unmarshal(decodedToken, &paginationToken)
+	}
+
+	leaks, err := db.d.GetByKeyword(key, value, paginationToken.Page, paginationToken.Size)
 	if err != nil {
 		return nil, "", err
 	}
-	return leaks, "", err
+
+	paginationToken.Page += 1
+	newToken, err := json.Marshal(paginationToken)
+	token = base64.StdEncoding.EncodeToString(newToken)
+
+	return leaks, token, err
 }

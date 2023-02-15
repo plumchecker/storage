@@ -65,8 +65,8 @@ func (postgres *dbClient) Create(leak entities.Leak) error {
 
 func (postgres *dbClient) GetByKeyword(key string, value string, page int, size int) ([]entities.Leak, error) {
 	var leaks []Leak
-
-	err := postgres.client.Scopes(postgres.Paginate(page, size)).Find(&leaks, fmt.Sprintf("%s = ?", key), value).Error
+	offset, limit := postgres.Paginate(page, size)
+	err := postgres.client.Offset(offset).Limit(limit).Where(fmt.Sprintf("%s = ?", key), value).Find(&leaks).Error
 	if err != nil {
 		return nil, err
 	}
@@ -91,15 +91,7 @@ func (postgres *dbClient) FindByEmail(email string) ([]entities.Leak, error) {
 	return result, nil
 }
 
-func (postgres *dbClient) Paginate(page int, size int) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		offset := (page - 1) * size
-		switch {
-		case size > 100:
-			size = 100
-		case size <= 0:
-			size = 10
-		}
-		return postgres.client.Offset(offset).Limit(size)
-	}
+func (postgres *dbClient) Paginate(page int, size int) (int, int) {
+	offset := (page - 1) * size
+	return offset, size
 }
