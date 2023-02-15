@@ -40,9 +40,6 @@ func getLeaks(app storage.Controller) http.Handler {
 		Value string `json:"value,omitempty"`
 		Token string `json:"token,omitempty"`
 	}
-	type Response struct {
-		leaks []entities.Leak
-	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		errorMessage := "Error getting leaks"
 
@@ -50,7 +47,7 @@ func getLeaks(app storage.Controller) http.Handler {
 		err := json.NewDecoder(r.Body).Decode(&newKeyword)
 		logger.Info.Printf("Get request for getting values by %s with value %s", newKeyword.Key, newKeyword.Value)
 
-		leaks, token, err := app.FindLeaksByKeyword(newKeyword.Key, newKeyword.Value, newKeyword.Token)
+		leaks, startCursor, endCursor, err := app.FindLeaksByKeyword(newKeyword.Key, newKeyword.Value, newKeyword.Token)
 		if err != nil {
 			http.Error(w, errorMessage, http.StatusInternalServerError)
 			return
@@ -59,7 +56,14 @@ func getLeaks(app storage.Controller) http.Handler {
 		w.Header().Set("Content-Type", "application/json")
 		response := make(map[string]interface{})
 		response["leaks"] = leaks
-		response["token"] = token
+		response["start_cursor"] = startCursor
+		if len(leaks) == 0 {
+			response["end_cursor"] = ""
+			response["is_final"] = true
+		} else {
+			response["end_cursor"] = endCursor
+			response["is_final"] = false
+		}
 		json.NewEncoder(w).Encode(response)
 	})
 }

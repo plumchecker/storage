@@ -47,7 +47,7 @@ func (db *database) InsertLeak(leak entities.Leak) (bool, error) {
 	return true, nil
 }
 
-func (db *database) FindLeaksByKeyword(key string, value string, token string) ([]entities.Leak, string, error) {
+func (db *database) FindLeaksByKeyword(key string, value string, token string) ([]entities.Leak, string, string, error) {
 	var paginationToken Pagination
 	if token == "" {
 		paginationToken = Pagination{
@@ -64,12 +64,19 @@ func (db *database) FindLeaksByKeyword(key string, value string, token string) (
 
 	leaks, err := db.d.GetByKeyword(key, value, paginationToken.Page, paginationToken.Size)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
-	paginationToken.Page += 1
-	newToken, err := json.Marshal(paginationToken)
-	token = base64.StdEncoding.EncodeToString(newToken)
+	endToken, err := json.Marshal(Pagination{Page: paginationToken.Page + 1, Size: paginationToken.Size})
+	endCursor := base64.StdEncoding.EncodeToString(endToken)
 
-	return leaks, token, err
+	var startCursor string
+	if paginationToken.Page == 1 {
+		startCursor = ""
+	} else {
+		startToken, _ := json.Marshal(Pagination{Page: paginationToken.Page - 1, Size: paginationToken.Size})
+		startCursor = base64.StdEncoding.EncodeToString(startToken)
+	}
+
+	return leaks, startCursor, endCursor, err
 }
