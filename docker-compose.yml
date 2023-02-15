@@ -16,6 +16,12 @@ services:
   storage:
     image: storage
     container_name: storage
+    environment:
+      - POSTGRES_ADDR=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASS=postgres
+      - POSTGRES_DB=leaks
     ports:
       - '30001:30001'
     depends_on:

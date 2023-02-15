@@ -21,11 +21,11 @@ import (
 
 func main() {
 	var config = &postgres.Config{
-		IP:       "postgres",
-		Port:     "5432",
-		User:     "postgres",
-		Password: "postgres",
-		Database: "leaks",
+		IP:       os.Getenv("POSTGRES_ADDR"),
+		Port:     os.Getenv("POSTGRES_PORT"),
+		User:     os.Getenv("POSTGRES_USER"),
+		Password: os.Getenv("POSTGRES_PASS"),
+		Database: os.Getenv("POSTGRES_DB"),
 	}
 
 	dbClient, err := postgres.New(config)
