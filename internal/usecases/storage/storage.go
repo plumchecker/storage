@@ -8,7 +8,7 @@ import (
 
 type repository interface {
 	InsertLeak(leak entities.Leak) (bool, error)
-	FindLeaksByKeyword(key string, value string) ([]entities.Leak, error)
+	FindLeaksByKeyword(key string, value string, token string) ([]entities.Leak, string, error)
 }
 
 type application struct {
@@ -17,7 +17,7 @@ type application struct {
 
 type Controller interface {
 	AddLeaks(leaks []entities.Leak) (int, error)
-	FindLeaksByKeyword(key string, value string) ([]entities.Leak, error)
+	FindLeaksByKeyword(key string, value string, token string) ([]entities.Leak, string, error)
 }
 
 func New(repo repository) (*application, error) {
@@ -41,10 +41,10 @@ func (app *application) AddLeaks(leaks []entities.Leak) (int, error) {
 	return counter, nil
 }
 
-func (app *application) FindLeaksByKeyword(key string, value string) ([]entities.Leak, error) {
-	leaks, err := app.repo.FindLeaksByKeyword(key, value)
+func (app *application) FindLeaksByKeyword(key string, value string, inputToken string) ([]entities.Leak, string, error) {
+	leaks, token, err := app.repo.FindLeaksByKeyword(key, value, inputToken)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return leaks, nil
+	return leaks, token, nil
 }

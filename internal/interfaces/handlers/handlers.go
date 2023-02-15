@@ -36,8 +36,9 @@ func addLeaks(app storage.Controller) http.Handler {
 
 func getLeaks(app storage.Controller) http.Handler {
 	type Keyword struct {
-		Key   string
-		Value string
+		Key   string `json:"key"`
+		Value string `json:"value,omitempty"`
+		Token string `json:"token,omitempty"`
 	}
 	type Response struct {
 		leaks []entities.Leak
@@ -48,7 +49,8 @@ func getLeaks(app storage.Controller) http.Handler {
 		newKeyword := new(Keyword)
 		err := json.NewDecoder(r.Body).Decode(&newKeyword)
 		logger.Info.Printf("Get request for getting values by %s with value %s", newKeyword.Key, newKeyword.Value)
-		leaks, err := app.FindLeaksByKeyword(newKeyword.Key, newKeyword.Value)
+
+		leaks, token, err := app.FindLeaksByKeyword(newKeyword.Key, newKeyword.Value, newKeyword.Token)
 		if err != nil {
 			http.Error(w, errorMessage, http.StatusInternalServerError)
 			return
@@ -57,6 +59,7 @@ func getLeaks(app storage.Controller) http.Handler {
 		w.Header().Set("Content-Type", "application/json")
 		response := make(map[string]interface{})
 		response["leaks"] = leaks
+		response["token"] = token
 		json.NewEncoder(w).Encode(response)
 	})
 }

@@ -6,7 +6,8 @@ import (
 
 type driver interface {
 	Create(leak entities.Leak) error
-	GetByKeyword(key string, value string) ([]entities.Leak, error)
+	GetByKeyword(key string, value string, page int, size int) ([]entities.Leak, error)
+	FindByEmail(email string) ([]entities.Leak, error)
 }
 
 type database struct {
@@ -20,7 +21,7 @@ func New(dbHandler driver) *database {
 }
 
 func (db *database) InsertLeak(leak entities.Leak) (bool, error) {
-	availableLeaks, err := db.d.GetByKeyword("email", leak.Email)
+	availableLeaks, err := db.d.FindByEmail(leak.Email)
 	if err != nil {
 		return false, err
 	}
@@ -38,10 +39,12 @@ func (db *database) InsertLeak(leak entities.Leak) (bool, error) {
 	return true, nil
 }
 
-func (db *database) FindLeaksByKeyword(key string, value string) ([]entities.Leak, error) {
-	leaks, err := db.d.GetByKeyword(key, value)
+func (db *database) FindLeaksByKeyword(key string, value string, token string) ([]entities.Leak, string, error) {
+	page := 1
+	size := 10
+	leaks, err := db.d.GetByKeyword(key, value, page, size)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return leaks, err
+	return leaks, "", err
 }

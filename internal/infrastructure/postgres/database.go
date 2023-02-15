@@ -24,7 +24,7 @@ type Config struct {
 
 type Leak struct {
 	gorm.Model
-	ID       uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
+	ID       uuid.UUID `gorm:"type:uuid;primary_key"`
 	Email    string    `gorm:"type:varchar(255); not null"`
 	Password string    `gorm:"type:varchar(255); not null"`
 	Domain   string    `gorm:"type:varchar(255); not null"`
@@ -53,13 +53,20 @@ func New(cnfg *Config) (*dbClient, error) {
 }
 
 func (postgres *dbClient) Create(leak entities.Leak) error {
-	result := postgres.client.Create(&leak)
+	dbLeak := Leak{
+		ID:       uuid.New(),
+		Email:    leak.Email,
+		Password: leak.Password,
+		Domain:   leak.Domain,
+	}
+	result := postgres.client.Create(&dbLeak)
 	return result.Error
 }
 
-func (postgres *dbClient) GetByKeyword(key string, value string) ([]entities.Leak, error) {
+func (postgres *dbClient) GetByKeyword(key string, value string, page int, size int) ([]entities.Leak, error) {
 	var leaks []Leak
-	err := postgres.client.Find(&leaks, fmt.Sprintf("%s = ?", key), value).Error
+
+	err := postgres.client.Scopes(postgres.Paginate(page, size)).Find(&leaks, fmt.Sprintf("%s = ?", key), value).Error
 	if err != nil {
 		return nil, err
 	}
@@ -68,4 +75,31 @@ func (postgres *dbClient) GetByKeyword(key string, value string) ([]entities.Lea
 		result = append(result, leak.toEntitiesLeak())
 	}
 	return result, nil
+}
+
+func (postgres *dbClient) FindByEmail(email string) ([]entities.Leak, error) {
+	var leaks []Leak
+
+	err := postgres.client.Find(&leaks, "email = ?", email).Error
+	if err != nil {
+		return nil, err
+	}
+	result := make([]entities.Leak, 0, len(leaks))
+	for _, leak := range leaks {
+		result = append(result, leak.toEntitiesLeak())
+	}
+	return result, nil
+}
+
+func (postgres *dbClient) Paginate(page int, size int) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		offset := (page - 1) * size
+		switch {
+		case size > 100:
+			size = 100
+		case size <= 0:
+			size = 10
+		}
+		return postgres.client.Offset(offset).Limit(size)
+	}
 }
